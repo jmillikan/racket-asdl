@@ -1,0 +1,3 @@
+An attempt at implementing the Python version of ASDL as a Racket language. Values from defined types are directly exposed as syntax object.
+
+Danny Yoo's parser generator Ragg (https://github.com/dyoo/ragg) is required.

@@ -24,7 +24,6 @@
                  #:column (position-col real-start-pos)
                  #:offset (position-offset real-start-pos)
                  #:span (- (position-offset end-pos) (position-offset real-start-pos)))))
-
        (any-char (continue-string port (cons lexeme lexeme-lst)))))
     (string-part-lex port))
   (continue-string port '()))
