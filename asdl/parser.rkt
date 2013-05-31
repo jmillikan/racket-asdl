@@ -1,11 +1,16 @@
 #lang racket
 
+(provide parse)
+
 (require parser-tools/lex
          (prefix-in : parser-tools/lex-sre)
+         syntax/strip-context
+         syntax/stx
 
-         (prefix-in grammar: "grammar.rkt")
          ragg/support
-         syntax/stx)
+
+         (prefix-in grammar: "grammar.rkt"))
+
 
 ;; For now, use the subset in Python.asdl (recent versions)
 
@@ -72,16 +77,14 @@
 		 (lex-acc port (cons token acc)))))]
 	 (reverse (lex-acc port (list)))))
 
-;; This is probably not right, but seems to work.
-(define (compare-ids a b)
-  (equal? (syntax-e a) (syntax-e b)))
+(define (parse src port)
+  (if (eof-object? (peek-char port))
+        eof
+        (strip-context 
+         (destructure-parse 
+          (grammar:parse (lambda () (lex port)))))))
 
-(define (convert-names stx)
-  (syntax-case stx () 
-    [(name-or-list ...) (map convert-names (syntax-e #'(name-or-list ...)))]
-    [name (string->symbol (syntax-e #'name))]))
-
-;; Everything from this to the tests is as dumb as two boxes of rocks.
+;; Everything from this to the tests is as dumb as two boxes of rocks. The tutorial just uses datum->syntax with locations.
 
 (define (destructure-parse stx)
   (syntax-case* stx (modules module type) compare-ids
@@ -93,9 +96,19 @@
                                ((((constructor ...) ...) ...) (convert-constructors #'(((constructor ...) ...) ...)))
                                (((attributes ...) ...) (convert-attributes #'((maybe-attributes ...) ...))))
                    #'(begin 
+                       (provide (all-defined-out)) ;; TODO: Less bad
                        (define-asdl-module module-name
                          (type-name attributes constructor ...) ...
                          ) ...))]))
+
+;; This is probably not right, but seems to work.
+(define (compare-ids a b)
+  (equal? (syntax-e a) (syntax-e b)))
+
+(define (convert-names stx)
+  (syntax-case stx () 
+    [(name-or-list ...) (stx-map convert-names stx)]
+    [name (string->symbol (syntax-e stx))]))
 
 (define (convert-constructors top-ctrs)
   (stx-map

@@ -23,7 +23,7 @@ TODO: Wrap built-in types as syntax objects in constructors
 
 |#
 
-(provide define-asdl-module)
+(provide (all-defined-out))
 
 (require (for-syntax syntax/strip-context))
 
